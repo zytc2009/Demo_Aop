@@ -4,7 +4,6 @@ import org.aspectj.bridge.MessageHandler
 import org.aspectj.tools.ajc.Main
 
 
-
 android {
     compileSdkVersion 26
     buildToolsVersion "28.0.3"
@@ -22,6 +21,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets/'] } }
 }
 
 final def log = project.logger
@@ -74,6 +74,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation files('libs/aspectjrt.jar')
+    api 'com.alibaba:fastjson:1.1.68.android'
 }
-
-

@@ -7,9 +7,13 @@ import android.util.Log;
 import android.view.View;
 
 import com.szy.lesson_aop.annotation.CheckNet;
+import com.szy.lesson_aop.bean.GradeData;
+import com.szy.lesson_aop.utils.DataParserUtil;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class MainActivity extends FragmentActivity {
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,4 +51,29 @@ public class MainActivity extends FragmentActivity {
         return false;
     }
 
+    /**
+     *  验证自解析要比fast快，省去了反射
+     *  由此：我们假设如果数据解析是否可以自动完成，通过apt实现，这样既提升速度，又不给大家工作产生较大影响
+     *
+     */
+    public void dataParseTest(View view) {
+        String result = DataParserUtil.readAssetsFileData(this, "json.txt");
+        //解析测试
+        Log.d("Parse","dataParseTest() system start");
+        //系统的解析
+        for(int i=0;i<10000;i++){
+            try {
+                JSONObject object = new JSONObject(result);
+                GradeData gradeData = new GradeData().parseData(object);
+            }catch (JSONException e){
+                e.printStackTrace();
+            }
+        }
+        Log.d("Parse","dataParseTest() system end");
+
+        for(int i=0;i<10000;i++){
+            GradeData gradeData = DataParserUtil.parseObject(result, GradeData.class);
+        }
+        Log.d("Parse","dataParseTest() fast end");
+    }
 }
