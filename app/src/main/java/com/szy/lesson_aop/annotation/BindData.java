@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME) //运行期
 @Target(ElementType.FIELD) // 目标
-public @interface DataKey {
+public @interface BindData {
     String value();
 }

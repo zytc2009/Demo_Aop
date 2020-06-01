@@ -1,11 +1,11 @@
 package com.szy.lesson_aop.bean;
 
-import com.szy.lesson_aop.annotation.DataKey;
+import com.szy.lesson_aop.annotation.BindData;
 
 import org.json.JSONObject;
 
 public class UserData extends BaseData {
-    @DataKey("name")
+    @BindData("name")
     private String name;
 
     public String getName() {
@@ -16,6 +16,7 @@ public class UserData extends BaseData {
         this.name = name;
     }
 
+    //最终要用APT实现，AOP做替换
     @Override
     public UserData parseData(JSONObject data) {
         this.setName(data.optString("name"));
