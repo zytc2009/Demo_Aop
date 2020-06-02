@@ -17,7 +17,7 @@
 
 4.通过APT生成统一的数据解析代码，AOP做替换（正在尝试中。。）
 
-   相关技术参考的是ButterKnife实现原理
+   核心技术是注解处理
 
 5.
 
@@ -27,5 +27,5 @@
 
 1. [ButterKnife 原理解析](https://www.jianshu.com/p/39fc66aa3297)
 
-   2.
+2. [秒懂Android注解处理器](https://blog.csdn.net/shusheng0007/article/details/90734159)
 

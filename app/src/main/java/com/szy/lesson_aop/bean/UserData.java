@@ -19,7 +19,6 @@ public class UserData extends BaseData {
     //最终要用APT实现，AOP做替换
     @Override
     public UserData parseData(JSONObject data) {
-        this.setName(data.optString("name"));
         return this;
     }
 }

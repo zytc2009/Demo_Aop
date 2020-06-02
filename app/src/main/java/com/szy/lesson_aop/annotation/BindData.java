@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * description: 标定需要解析的key
  */
-@Retention(RetentionPolicy.RUNTIME) //运行期
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD) // 目标
 public @interface BindData {
     String value();

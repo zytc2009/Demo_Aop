@@ -1,7 +1,9 @@
 package com.szy.lesson_aop.bean;
 
+
 import com.szy.lesson_aop.annotation.BindData;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class GradeData extends BaseData {
@@ -29,8 +31,14 @@ public class GradeData extends BaseData {
     //最终要用APT实现，AOP做替换
     @Override
     public  GradeData parseData(JSONObject data) {
-        this.setName(data.optString("name"));
-        userData = new UserData().parseData(data.optJSONObject("userData"));
+        name = data.optString("name");
+
+
+        try {
+            userData = new UserData().parseData(data.getJSONObject("userData"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return this;
     }
 }
