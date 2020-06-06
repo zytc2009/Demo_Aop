@@ -28,6 +28,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
@@ -106,10 +107,16 @@ public class Processor extends AbstractProcessor {
                                      ClassName.get(variableElement.asType()),
                                      NameStore.Variable.ANDROID_DATA);
                          }else {
-                             bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =" + NameStore.Variable.ANDROID_DATA + ".opt$T(\"$L\")",
-                                     variableElement.getSimpleName(),
-                                     variableElement,
-                                     bindView.value());
+                             if(variableElement.asType().getKind() == TypeKind.INT || variableElement.asType().getKind() == TypeKind.SHORT){
+                                 bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =" + NameStore.Variable.ANDROID_DATA + ".optInt(\"$L\")",
+                                         variableElement.getSimpleName(),
+                                         bindView.value());
+                             }else {
+                                 bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =" + NameStore.Variable.ANDROID_DATA + ".opt$T(\"$L\")",
+                                         variableElement.getSimpleName(),
+                                         variableElement,
+                                         bindView.value());
+                             }
                          }
                     }
                 }
@@ -130,6 +137,13 @@ public class Processor extends AbstractProcessor {
         return true;
     }
 
+    //首字母转大写
+    public static String toUpperCaseFirstOne(String s){
+        if(Character.isUpperCase(s.charAt(0)))
+            return s;
+        else
+            return (new StringBuilder()).append(Character.toUpperCase(s.charAt(0))).append(s.substring(1)).toString();
+    }
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {

@@ -9,8 +9,14 @@ public class GradeData extends BaseData {
     @BindData("name")
     protected String gradeName;
 
+    @BindData("gradeNum")
+    protected int gradeNum;
+
     @BindData("userData")
     protected UserData userData;
+
+    @BindData("teacher")
+    protected Teacher teacher;
 
     public String getGradeName() {
         return gradeName;
@@ -20,12 +26,29 @@ public class GradeData extends BaseData {
         this.gradeName = gradeName;
     }
 
+
+    public int getGradeNum() {
+        return gradeNum;
+    }
+
+    public void setGradeNum(int gradeNum) {
+        this.gradeNum = gradeNum;
+    }
+
     public UserData getUserData() {
         return userData;
     }
 
     public void setUserData(UserData userData) {
         this.userData = userData;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
     }
 
     //最终要用APT实现，AOP做替换

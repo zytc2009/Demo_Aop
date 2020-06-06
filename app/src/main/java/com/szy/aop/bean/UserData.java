@@ -8,6 +8,17 @@ public class UserData extends BaseData {
     @BindData("name")
     protected String userName;
 
+    @BindData("age")
+    protected int age;
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
     public String getUserName() {
         return userName;
     }
