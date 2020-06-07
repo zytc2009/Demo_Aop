@@ -69,10 +69,10 @@ public class Processor extends AbstractProcessor {
                         .get(packageName, typeName + "ParseHelper");
 
                 //create class：name + ParseHelper,  keep
-                System.out.println("Processor " +generatedClassName);
+                System.out.println("Processor " +generatedClassName );
                 TypeSpec.Builder classBuilder = TypeSpec.classBuilder(generatedClassName)
                         .addModifiers(Modifier.PUBLIC)
-                          .addAnnotation(Keep.class);
+                        .addAnnotation(Keep.class);
 
                 //example:
 //                public static void bindData(JSONObject data, UserData bean) {
@@ -98,31 +98,12 @@ public class Processor extends AbstractProcessor {
                 for (VariableElement variableElement : ElementFilter.fieldsIn(entry.getValue())) {
                     BindData bindView = variableElement.getAnnotation(BindData.class);
                     System.out.println("Processor variableElement=" +ClassName.get(variableElement.asType()));
-
                     if (bindView != null) {
-                         if(ClassName.get(variableElement.asType()).toString().contains("aop.bean")){
-                             //
-                             bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =new $T().parseData($L)",
-                                     variableElement.getSimpleName(),
-                                     ClassName.get(variableElement.asType()),
-                                     NameStore.Variable.ANDROID_DATA);
-                         }else {
-                             if(variableElement.asType().getKind() == TypeKind.INT || variableElement.asType().getKind() == TypeKind.SHORT){
-                                 bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =" + NameStore.Variable.ANDROID_DATA + ".optInt(\"$L\")",
-                                         variableElement.getSimpleName(),
-                                         bindView.value());
-                             }else {
-                                 bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =" + NameStore.Variable.ANDROID_DATA + ".opt$T(\"$L\")",
-                                         variableElement.getSimpleName(),
-                                         variableElement,
-                                         bindView.value());
-                             }
-                         }
+                        bindDataItem(bindViewsMethodBuilder,variableElement.getSimpleName().toString(),ClassName.get(variableElement.asType()).toString(), bindView.value());
                     }
                 }
                 //将构建出来的方法添加到类里面
                 classBuilder.addMethod(bindViewsMethodBuilder.build());
-
                 //
                 try {
                     JavaFile.builder(packageName,
@@ -137,6 +118,104 @@ public class Processor extends AbstractProcessor {
         return true;
     }
 
+
+    private void bindDataItem(MethodSpec.Builder bindViewsMethodBuilder, String fieldName, String type, String bindValue){
+        System.out.println("Processor bindDataItem() type=" + type);
+        if(isPrimitive(type)){
+            //基本数据类型，做强转
+            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N = ($N) " + NameStore.Variable.ANDROID_DATA + ".opt(\"$L\")",
+                    fieldName,
+                    type,
+                    bindValue);
+        }else if(type.startsWith("java.util.List") || type.startsWith("java.util.ArrayList") ){
+            //List处理。TODO
+            //1.获取子类型，先不考虑嵌套
+            String componentType = type.substring(type.indexOf("<")+1, type.lastIndexOf(">"));
+            System.out.println("Processor bindDataItem() componentType=" + componentType);
+            /**
+             * JSONArray array = data.optJSONArray("grades");
+             * java.util.List<type> result = new java.util.ArrayList<>(array.length());
+             * if(array != null && array.length() >0){
+             *          for(int i=0;i<array.length();i++){
+             *                JSONObject object = array.optJSONObject(i);
+             *                //类型处理
+             *                result.add(object);
+             *          }
+             * }
+             *
+             */
+            //遍历Array
+            StringBuilder builder = new StringBuilder();
+            builder.append(String.format("org.json.JSONArray array = %s.optJSONArray(\"%s\");", NameStore.Variable.ANDROID_DATA, bindValue));
+
+            System.out.println("Processor bindDataItem() 1");
+            if(isPrimitive(componentType)){
+                builder.append(String.format("java.util.List<%s> result = new java.util.ArrayList<>(array.length());", getBoxType(componentType)));
+            }else{
+                builder.append(String.format("java.util.List<%s> result = new java.util.ArrayList<>(array.length());", componentType ));
+            }
+
+            builder.append(String.format("if(array != null && array.length() >0){"));
+            builder.append(String.format(" for(int i=0;i<array.length();i++){"));
+
+            if(isPrimitive(componentType)) {
+                builder.append(String.format("  %s object = (%s) array.opt(i);", componentType, componentType));
+            }else if(type.contains("aop.bean")){
+                builder.append(String.format("  %s  object = new %s().parseData( array.optJSONObject(i));", componentType, componentType)) ;
+            }else{
+                builder.append(String.format("  %s  object =array.opt%s(i);", componentType, componentType.substring(componentType.lastIndexOf(".")+1)));
+            }
+            builder.append("result.add(object);");
+            builder.append("} } ");
+
+            bindViewsMethodBuilder.addStatement(builder.toString());
+
+        }else if(type.contains("aop.bean")){
+            //自定义数据必须自己实现parseData方法
+            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =new $N().parseData($L)",
+                    fieldName,
+                    type,
+                    NameStore.Variable.ANDROID_DATA);
+        }else {//其他:String,JSONObject,JSONArray
+            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =" + NameStore.Variable.ANDROID_DATA + ".opt$N(\"$L\")",
+                    fieldName,
+                    type.substring(type.lastIndexOf(".")+1),
+                    bindValue);
+        }
+
+    }
+
+    private boolean isPrimitive(String type){
+        if(type.equals("int") || type.equals("double") || type.equals("long")
+                || type.equals("float") || type.equals("short") || type.equals("char") ||
+                type.equals("boolean")  ){
+            return true;
+        }
+        return false;
+    }
+
+    //
+    private String getBoxType(String type){
+        switch (type){
+            case "boolean":
+                return "java.lang.Boolean";
+            case "int":
+                return "java.lang.Integer";
+            case "double":
+                return "java.lang.Double";
+            case "long":
+                return "java.lang.Long";
+            case "float":
+                return "java.lang.Float";
+            case "short":
+                return "java.lang.Short";
+            case "char":
+                return "java.lang.Character";
+        }
+        return "";
+    }
+
+
     //首字母转大写
     public static String toUpperCaseFirstOne(String s){
         if(Character.isUpperCase(s.charAt(0)))
@@ -144,6 +223,7 @@ public class Processor extends AbstractProcessor {
         else
             return (new StringBuilder()).append(Character.toUpperCase(s.charAt(0))).append(s.substring(1)).toString();
     }
+
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {

@@ -1,5 +1,6 @@
 package com.szy.aop.bean;
 
+import com.szy.aop.json.JSONBindObject;
 import com.zy.binddata.annotations.BindData;
 
 import org.json.JSONException;

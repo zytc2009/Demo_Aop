@@ -1,6 +1,7 @@
 package com.szy.aop.utils;
 
 import com.szy.aop.bean.BaseData;
+import com.szy.aop.json.JSONBindObject;
 
 import org.json.JSONObject;
 
