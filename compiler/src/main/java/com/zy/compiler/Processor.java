@@ -58,13 +58,12 @@ public class Processor extends AbstractProcessor {
         }else {
             System.out.println("Processor " + annotationClassMap.size());
             for (Map.Entry<String, List<Element>> entry : annotationClassMap.entrySet()) {
+                //获取包名和类名
                 String packageName = entry.getKey().split("_")[0];
                 String typeName = entry.getKey().split("_")[1];
                 ClassName className = ClassName.get(packageName, typeName);
 
-
                 System.out.println("Processor " +entry.getKey());
-
                 ClassName generatedClassName = ClassName
                         .get(packageName, typeName + "ParseHelper");
 
@@ -73,11 +72,6 @@ public class Processor extends AbstractProcessor {
                 TypeSpec.Builder classBuilder = TypeSpec.classBuilder(generatedClassName)
                         .addModifiers(Modifier.PUBLIC)
                         .addAnnotation(Keep.class);
-
-                //example:
-//                public static void bindData(JSONObject data, UserData bean) {
-//
-//                }
 
                 ClassName jsonObjectClassName = ClassName.get(
                         NameStore.Package.ANDROID_JSON,
@@ -91,10 +85,6 @@ public class Processor extends AbstractProcessor {
                         .addParameter(jsonObjectClassName, NameStore.Variable.ANDROID_DATA)
                         .addParameter(className, NameStore.Variable.ANDROID_BEAN);
 
-                /* GradeData:
-                 * bean.gradeName = data.optXXX("name");
-                 * bean.userData = new com.szy.aop.bean.UserData().parseData(data);
-                 * */
                 for (VariableElement variableElement : ElementFilter.fieldsIn(entry.getValue())) {
                     BindData bindView = variableElement.getAnnotation(BindData.class);
                     System.out.println("Processor variableElement=" +ClassName.get(variableElement.asType()));
@@ -116,6 +106,40 @@ public class Processor extends AbstractProcessor {
             }
         }
         return true;
+    }
+
+
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        return new TreeSet<>(Arrays.asList(
+                BindData.class.getCanonicalName(),
+                Keep.class.getCanonicalName()));
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latestSupported();
+    }
+
+
+
+    private void buildAnnotatedElement(RoundEnvironment roundEnv, Class<? extends Annotation> clazz) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(clazz)) {
+            String className = getFullClassName(element);
+            List<Element> cacheElements = annotationClassMap.get(className);
+            if (cacheElements == null) {
+                cacheElements = new ArrayList<>();
+                annotationClassMap.put(className, cacheElements);
+            }
+            cacheElements.add(element);
+        }
+    }
+
+    private String getFullClassName(Element element) {
+        TypeElement typeElement = (TypeElement) element.getEnclosingElement();
+        String packageName = elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
+        System.out.println("Processor typeElement=" +typeElement);
+        return packageName + "_" + typeElement.getSimpleName().toString();
     }
 
 
@@ -246,34 +270,4 @@ public class Processor extends AbstractProcessor {
     }
 
 
-    @Override
-    public Set<String> getSupportedAnnotationTypes() {
-        return new TreeSet<>(Arrays.asList(
-                BindData.class.getCanonicalName(),
-                Keep.class.getCanonicalName()));
-    }
-
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
-    }
-
-    private void buildAnnotatedElement(RoundEnvironment roundEnv, Class<? extends Annotation> clazz) {
-        for (Element element : roundEnv.getElementsAnnotatedWith(clazz)) {
-            String className = getFullClassName(element);
-            List<Element> cacheElements = annotationClassMap.get(className);
-            if (cacheElements == null) {
-                cacheElements = new ArrayList<>();
-                annotationClassMap.put(className, cacheElements);
-            }
-            cacheElements.add(element);
-        }
-    }
-
-    private String getFullClassName(Element element) {
-        TypeElement typeElement = (TypeElement) element.getEnclosingElement();
-        String packageName = elementUtils.getPackageOf(typeElement).getQualifiedName().toString();
-        System.out.println("Processor typeElement=" +typeElement);
-        return packageName + "_" + typeElement.getSimpleName().toString();
-    }
 }
