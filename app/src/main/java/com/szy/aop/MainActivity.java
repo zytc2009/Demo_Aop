@@ -65,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
             try {
                 JSONObject object = new JSONObject(result);
                 GradeData gradeData = new GradeData().parseData(object);
+//                if(i==5000) {
+//                    Log.d("Parse", "dataParseTest() system end" + gradeData.getUserData());
+//                }
             }catch (JSONException e){
                 e.printStackTrace();
             }

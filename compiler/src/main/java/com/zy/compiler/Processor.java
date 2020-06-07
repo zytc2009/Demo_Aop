@@ -123,9 +123,10 @@ public class Processor extends AbstractProcessor {
         System.out.println("Processor bindDataItem() type=" + type);
         if(isPrimitive(type)){
             //基本数据类型，做强转
-            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N = ($N) " + NameStore.Variable.ANDROID_DATA + ".opt(\"$L\")",
+            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N = ($N)" + NameStore.Variable.ANDROID_DATA + ".opt$N(\"$L\")",
                     fieldName,
                     type,
+                    getOptType(type),
                     bindValue);
         }else if(type.startsWith("java.util.List") || type.startsWith("java.util.ArrayList") ){
             //List处理。TODO
@@ -149,36 +150,36 @@ public class Processor extends AbstractProcessor {
             builder.append(String.format("org.json.JSONArray array = %s.optJSONArray(\"%s\");", NameStore.Variable.ANDROID_DATA, bindValue));
 
             System.out.println("Processor bindDataItem() 1");
-            if(isPrimitive(componentType)){
-                builder.append(String.format("java.util.List<%s> result = new java.util.ArrayList<>(array.length());", getBoxType(componentType)));
-            }else{
-                builder.append(String.format("java.util.List<%s> result = new java.util.ArrayList<>(array.length());", componentType ));
-            }
+
+            builder.append(String.format(NameStore.Variable.ANDROID_BEAN + ".%s = new java.util.ArrayList<>();", fieldName));
+
 
             builder.append(String.format("if(array != null && array.length() >0){"));
             builder.append(String.format(" for(int i=0;i<array.length();i++){"));
 
             if(isPrimitive(componentType)) {
-                builder.append(String.format("  %s object = (%s) array.opt(i);", componentType, componentType));
+                builder.append(String.format("  %s object =  array.opt(%s)(i);", componentType, getOptType(componentType) ) );
             }else if(type.contains("aop.bean")){
                 builder.append(String.format("  %s  object = new %s().parseData( array.optJSONObject(i));", componentType, componentType)) ;
             }else{
                 builder.append(String.format("  %s  object =array.opt%s(i);", componentType, componentType.substring(componentType.lastIndexOf(".")+1)));
             }
-            builder.append("result.add(object);");
+            builder.append(String.format(NameStore.Variable.ANDROID_BEAN + ".%s.add(object);", fieldName));
             builder.append("} } ");
 
             bindViewsMethodBuilder.addStatement(builder.toString());
 
         }else if(type.contains("aop.bean")){
             //自定义数据必须自己实现parseData方法
-            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =new $N().parseData($L)",
+            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =new $N().parseData($L.optJSONObject(\"$N\"))",
                     fieldName,
                     type,
-                    NameStore.Variable.ANDROID_DATA);
+                    NameStore.Variable.ANDROID_DATA,
+                    fieldName);
         }else {//其他:String,JSONObject,JSONArray
-            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N =" + NameStore.Variable.ANDROID_DATA + ".opt$N(\"$L\")",
+            bindViewsMethodBuilder.addStatement(NameStore.Variable.ANDROID_BEAN + ".$N = ($N) " + NameStore.Variable.ANDROID_DATA + ".opt$N(\"$L\")",
                     fieldName,
+                    type,
                     type.substring(type.lastIndexOf(".")+1),
                     bindValue);
         }
@@ -211,6 +212,26 @@ public class Processor extends AbstractProcessor {
                 return "java.lang.Short";
             case "char":
                 return "java.lang.Character";
+        }
+        return "";
+    }
+
+    private String getOptType(String type){
+        switch (type){
+            case "boolean":
+                return "Boolean";
+            case "int":
+                return "Int";
+            case "double":
+                return "Double";
+            case "long":
+                return "Long";
+            case "float":
+                return "Double";
+            case "short":
+                return "Integer";
+            case "char":
+                return "Integer";
         }
         return "";
     }

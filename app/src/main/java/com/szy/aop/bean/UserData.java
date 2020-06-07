@@ -1,5 +1,8 @@
 package com.szy.aop.bean;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.szy.aop.json.JSONBindObject;
 import com.zy.binddata.annotations.BindData;
 
@@ -75,10 +78,24 @@ public class UserData extends BaseData {
         this.grades = grades;
     }
 
+    
+
     //最终要用APT实现，AOP做替换
     @Override
     public UserData parseData(JSONObject data) {
         UserDataParseHelper.bindData(data, this);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return "UserData{" +
+                "userName='" + userName + '\'' +
+                ", age=" + age +
+                ", isFree=" + isFree +
+                ", money=" + money +
+                ", score=" + score +
+                ", grades=" + grades +
+                '}';
     }
 }

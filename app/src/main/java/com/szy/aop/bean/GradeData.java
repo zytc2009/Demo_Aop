@@ -58,4 +58,14 @@ public class GradeData extends BaseData {
         GradeDataParseHelper.bindData(data, this);
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "GradeData{" +
+                "gradeName='" + gradeName + '\'' +
+                ", gradeNum=" + gradeNum +
+                ", userData=" + userData +
+                ", teacher=" + teacher +
+                '}';
+    }
 }

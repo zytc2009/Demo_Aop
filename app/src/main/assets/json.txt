@@ -1,6 +1,16 @@
 {
- "name":"grade",
- "userData":{
-  "name":"user"
- }
+	"name": "grade",
+	"gradeNum": 1,
+	"teacher": {
+		"name": "teacher",
+		"age": 28
+	},
+	"userData": {
+		"name": "user",
+		"age": 16,
+		"isfree": true,
+		"money": "100.5",
+		"score": 99,
+		"grades": ["grade1", "grade2"]
+	}
 }

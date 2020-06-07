@@ -30,6 +30,14 @@ public class Teacher extends BaseData {
     @Override
     public Teacher parseData(JSONObject data) {
         TeacherParseHelper.bindData(data, this);
-        return null;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "Teacher{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
     }
 }

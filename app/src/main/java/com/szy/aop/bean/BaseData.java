@@ -2,6 +2,8 @@ package com.szy.aop.bean;
 
 import org.json.JSONObject;
 
-public abstract class BaseData {
+import java.io.Serializable;
+
+public abstract class BaseData implements Serializable {
     public abstract Object parseData(JSONObject data);
 }
